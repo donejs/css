@@ -4,22 +4,31 @@ var loader = require("@loader");
 var register = loader.has("asset-register") ?
   loader.get("asset-register")["default"] : function(){};
 
+function getExistingAsset(load){
+	var s = typeof jQuery !== "undefined" ? jQuery : document.querySelectorAll;
+	var val = s("[asset-id='" + load.name + "']");
+	return val && val[0];
+}
+
 if(loader.env === 'production') {
 	exports.fetch = function(load) {
 		// return a thenable for fetching (as per specification)
 		// alternatively return new Promise(function(resolve, reject) { ... })
 		var cssFile = load.address;
 
-		var link = document.createElement('link');
-		link.rel = 'stylesheet';
-		link.href = cssFile;
+		var link = getExistingAsset(load);
+		if(!link) {
+			var link = document.createElement('link');
+			link.rel = 'stylesheet';
+			link.href = cssFile;
 
-		document.head.appendChild(link);
+			document.head.appendChild(link);
+		}
 		return "";
 	};
 } else {
 	exports.instantiate = function(load) {
-		var loader = this, assetRegister;
+		var loader = this;
 
 		load.metadata.deps = [];
 		load.metadata.execute = function(){
@@ -32,25 +41,28 @@ if(loader.env === 'production') {
 				var doc = document.head ? document : document.getElementsByTagName ?
 					document : document.documentElement;
 
-				var head = doc.head || doc.getElementsByTagName('head')[0],
-					style = document.createElement('style');
+				var head = doc.head || doc.getElementsByTagName('head')[0];
 
 				if(!head) {
 					head = document.createElement("head");
 					doc.insertBefore(head, doc.firstChild);
 				}
 
+				var style = getExistingAsset(load);
+				if(!style) {
+					style = document.createElement('style')
 
-				// make source load relative to the current page
+					// make source load relative to the current page
 
-				style.type = 'text/css';
+					style.type = 'text/css';
 
-				if (style.styleSheet){
-					style.styleSheet.cssText = source;
-				} else {
-					style.appendChild(document.createTextNode(source));
+					if (style.styleSheet){
+						style.styleSheet.cssText = source;
+					} else {
+						style.appendChild(document.createTextNode(source));
+					}
+					head.appendChild(style);
 				}
-				head.appendChild(style);
 
 				if(loader.has("live-reload")) {
 					var cssReload = loader.import("live-reload", { name: "$css" });
