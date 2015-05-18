@@ -10,20 +10,35 @@ function getExistingAsset(load){
 	return val && val[0];
 }
 
+var isNode = typeof process === "object" &&
+	{}.toString.call(process) === "[object process]";
+
 if(loader.env === 'production') {
 	exports.fetch = function(load) {
 		// return a thenable for fetching (as per specification)
 		// alternatively return new Promise(function(resolve, reject) { ... })
 		var cssFile = load.address;
 
-		var link = getExistingAsset(load);
-		if(!link) {
-			var link = document.createElement('link');
-			link.rel = 'stylesheet';
-			link.href = cssFile;
+		var link;
+		if(isNode) {
+			link = document.createElement('link');
+			link.setAttribute("rel", "stylesheet");
+			link.setAttribute("href", cssFile);
 
-			document.head.appendChild(link);
+			register(load.name, "css", function(){
+				return link.cloneNode(true);
+			});
+		} else {
+			link = getExistingAsset(load);
+			if(!link) {
+				link = document.createElement('link');
+				link.rel = 'stylesheet';
+				link.href = cssFile;
+
+				document.head.appendChild(link);
+			}
 		}
+
 		return "";
 	};
 } else {
