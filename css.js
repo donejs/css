@@ -21,6 +21,9 @@ if(loader.env === 'production') {
 
 		var link;
 		if(isNode) {
+			var path = loader._nodeRequire("path");
+			cssFile = path.relative(loader.baseURL, cssFile);
+
 			link = document.createElement('link');
 			link.setAttribute("rel", "stylesheet");
 			link.setAttribute("href", cssFile);
