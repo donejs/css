@@ -5,7 +5,7 @@ var register = loader.has("asset-register") ?
   loader.get("asset-register")["default"] : function(){};
 
 function getExistingAsset(load){
-	var s = typeof jQuery !== "undefined" ? jQuery : document.querySelectorAll;
+	var s = typeof jQuery !== "undefined" ? jQuery : document.querySelectorAll.bind(document);
 	var val = s("[asset-id='" + load.name + "']");
 	return val && val[0];
 }
