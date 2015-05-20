@@ -26,7 +26,7 @@ if(loader.env === 'production') {
 
 			link = document.createElement('link');
 			link.setAttribute("rel", "stylesheet");
-			link.setAttribute("href", cssFile);
+			link.setAttribute("href", "/" + cssFile);
 
 			register(load.name, "css", function(){
 				return link.cloneNode(true);
