@@ -11,7 +11,9 @@ function getExistingAsset(load){
 }
 
 var isNode = typeof process === "object" &&
-	{}.toString.call(process) === "[object process]";
+	{}.toString.call(process) === "[object process]" &&
+	// NW.js
+	(function(){try{var nr = loader._nodeRequire; return nr && nr('nw.gui') !== 'undefined';}catch(e){return false;}})();
 
 if(loader.env === 'production') {
 	exports.fetch = function(load) {
