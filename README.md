@@ -1,6 +1,6 @@
-# system-css
+# done-css
 
-A CSS plugin for StealJS and SystemJS.
+A CSS plugin for DoneJS projects.
 
 ## License
 
