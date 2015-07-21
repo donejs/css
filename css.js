@@ -62,8 +62,9 @@ if(loader.env === 'production') {
 				var head = doc.head || doc.getElementsByTagName('head')[0];
 
 				if(!head) {
+					var docEl = doc.documentElement || doc;
 					head = document.createElement("head");
-					doc.insertBefore(head, doc.firstChild);
+					docEl.insertBefore(head, docEl.firstChild);
 				}
 
 				var style = getExistingAsset(load);
