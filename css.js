@@ -32,13 +32,15 @@ if(loader.env === 'production') {
 				return link.cloneNode(true);
 			});
 		} else {
-			link = getExistingAsset(load);
-			if(!link) {
-				link = document.createElement('link');
-				link.rel = 'stylesheet';
-				link.href = cssFile;
+			if(typeof document !== "undefined") {
+				link = getExistingAsset(load);
+				if(!link) {
+					link = document.createElement('link');
+					link.rel = 'stylesheet';
+					link.href = cssFile;
 
-				document.head.appendChild(link);
+					document.head.appendChild(link);
+				}
 			}
 		}
 
