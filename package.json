@@ -1,6 +1,6 @@
 {
   "name": "done-css",
-  "version": "0.0.12",
+  "version": "1.0.0",
   "description": "A CSS plugin, for css",
   "main": "css.js",
   "scripts": {
