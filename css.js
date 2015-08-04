@@ -31,7 +31,7 @@ if(isProduction) {
 			if(loader.renderingLoader) {
 				var baseURL = loader.renderingLoader.baseURL;
 				if(baseURL.indexOf("http") === 0) {
-					href = baseURL = cssFile.replace("dist/", "");
+					href = baseURL + cssFile.replace("dist/", "");
 				}
 			}
 
