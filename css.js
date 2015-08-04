@@ -14,7 +14,7 @@ var isNode = typeof process === "object" &&
 	{}.toString.call(process) === "[object process]";
 
 var isProduction = (loader.envMap && loader.envMap.production) || loader.env === "production";
-if(loader.env === 'production') {
+if(isProduction) {
 	exports.fetch = function(load) {
 		// return a thenable for fetching (as per specification)
 		// alternatively return new Promise(function(resolve, reject) { ... })
