@@ -13,6 +13,7 @@ function getExistingAsset(load){
 var isNode = typeof process === "object" &&
 	{}.toString.call(process) === "[object process]";
 
+var isProduction = (loader.envMap && loader.envMap.production) || loader.env === "production";
 if(loader.env === 'production') {
 	exports.fetch = function(load) {
 		// return a thenable for fetching (as per specification)
@@ -24,9 +25,19 @@ if(loader.env === 'production') {
 			var path = loader._nodeRequire("path");
 			cssFile = path.relative(loader.baseURL, cssFile);
 
+			var href = "/" + cssFile;
+
+			// If server side rendering and a baseURL is set, use it.
+			if(loader.renderingLoader) {
+				var baseURL = loader.renderingLoader.baseURL;
+				if(baseURL.indexOf("http") === 0) {
+					href = path.join(baseURL, cssFile.replace("dist/", ""));
+				}
+			}
+
 			link = document.createElement('link');
 			link.setAttribute("rel", "stylesheet");
-			link.setAttribute("href", "/" + cssFile);
+			link.setAttribute("href", href);
 
 			register(load.name, "css", function(){
 				return link.cloneNode(true);
