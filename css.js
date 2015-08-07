@@ -13,6 +13,14 @@ function getExistingAsset(load){
 var isNode = typeof process === "object" &&
 	{}.toString.call(process) === "[object process]";
 
+var isNW = (function(){
+	try {
+		return loader._nodeRequire("nw.gui") !== "undefined";
+	} catch(e) {
+		return false;
+	}
+})();
+
 var isProduction = (loader.envMap && loader.envMap.production) || loader.env === "production";
 if(isProduction) {
 	exports.fetch = function(load) {
@@ -21,7 +29,7 @@ if(isProduction) {
 		var cssFile = load.address;
 
 		var link;
-		if(isNode) {
+		if(isNode && !isNW) {
 			var path = loader._nodeRequire("path");
 			cssFile = path.relative(loader.baseURL, cssFile);
 
