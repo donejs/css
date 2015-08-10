@@ -71,6 +71,7 @@ if(isProduction) {
 
 		load.metadata.deps = [];
 		load.metadata.execute = function(){
+			var liveReloadEnabled = loader.has("live-reload");
 			var source = load.source+"/*# sourceURL="+load.address+" */";
 			source = source.replace(/url\(['"]?([^'"\)]*)['"]?\)/g, function(whole, part) {
 				return "url(" + steal.joinURIs( load.address, part) + ")";
@@ -89,7 +90,7 @@ if(isProduction) {
 				}
 
 				var style = getExistingAsset(load);
-				if(!style) {
+				if(!style || liveReloadEnabled) {
 					style = document.createElement('style')
 
 					// make source load relative to the current page
@@ -104,7 +105,7 @@ if(isProduction) {
 					head.appendChild(style);
 				}
 
-				if(loader.has("live-reload")) {
+				if(liveReloadEnabled) {
 					var cssReload = loader.import("live-reload", { name: "$css" });
 					Promise.resolve(cssReload).then(function(reload){
 						loader.import(load.name).then(function(){
