@@ -19,7 +19,7 @@ QUnit.module("live-reload", {
 	}
 });
 
-QUnit.test("removing css works", function(){
+QUnit.test("changing css modules works", function(){
 	F("style").exists("the initial style was added to the page");
 
 	F(function(){
@@ -33,6 +33,22 @@ QUnit.test("removing css works", function(){
 	});
 
    F("#app").exists().height(20, "The height is now correct");
+});
+
+QUnit.test("removing a css module from the graph causes it to be removed from the page", function(){
+	F("style").exists("The initial style was added to the page");
+
+	F(function(){
+		var address = "test/live/basics.js";
+		var content = "module.exports={};";
+
+		liveReloadTest.put(address, content).then(null, function(){
+			QUnit.ok(false, "Changing css did not work");
+			QUnit.start();
+		});
+	});
+
+	F("#app").exists().height(0, "The height is now 0 because the css module was removed from the dependency graph");
 });
 
 QUnit.module("live-reload with ssr", {

@@ -109,8 +109,15 @@ if(isProduction) {
 					var cssReload = loader.import("live-reload", { name: "$css" });
 					Promise.resolve(cssReload).then(function(reload){
 						loader.import(load.name).then(function(){
-							reload.once(load.name, function(){
+							var wasReloaded = false;
+							/*reload.once(load.name, function(){
+								wasReloaded = true;
 								head.removeChild(style);
+							});*/
+							reload.dispose(load.name, function(){
+								reload(function(){
+									head.removeChild(style);
+								});
 							});
 						});
 					});
