@@ -21,7 +21,7 @@ var isNW = (function(){
 	}
 })();
 
-var isProduction = (loader.envMap && loader.envMap.production) || loader.env === "production";
+var isProduction = (loader.isEnv && loader.isEnv("production")) || (loader.envMap && loader.envMap.production) || loader.env === "production";
 if(isProduction) {
 	exports.fetch = function(load) {
 		// return a thenable for fetching (as per specification)
