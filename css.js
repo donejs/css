@@ -109,8 +109,21 @@ if(isProduction) {
 					var cssReload = loader.import("live-reload", { name: "$css" });
 					Promise.resolve(cssReload).then(function(reload){
 						loader.import(load.name).then(function(){
+							var wasReloaded = false;
 							reload.once(load.name, function(){
+								wasReloaded = true;
 								head.removeChild(style);
+							});
+							// We need this code for orphaned modules. We set
+							// a flag to see if the css was reloaded, if not
+							// we know we can remove it after the reload
+							// cycle is complete.
+							reload.dispose(load.name, function(){
+								reload.once("!cycleComplete", function(){
+									if(!wasReloaded) {
+										head.removeChild(style);
+									}
+								});
 							});
 						});
 					});
