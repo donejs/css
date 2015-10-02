@@ -73,8 +73,17 @@ if(isProduction) {
 		load.metadata.execute = function(){
 			var liveReloadEnabled = loader.has("live-reload");
 			var source = load.source+"/*# sourceURL="+load.address+" */";
+			var address = load.address;
+
+			// If on the server use the renderingLoader to use the correct
+			// address when rewriting url()s.
+			if(loader.renderingLoader) {
+				var href = load.address.substr(loader.baseURL.length);
+				address = steal.joinURIs(loader.renderingLoader.baseURL, href);
+			}
+
 			source = source.replace(/url\(['"]?([^'"\)]*)['"]?\)/g, function(whole, part) {
-				return "url(" + steal.joinURIs( load.address, part) + ")";
+				return "url(" + steal.joinURIs(address, part) + ")";
 			});
 
 			if(load.source && typeof document !== "undefined") {
