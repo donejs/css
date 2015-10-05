@@ -4,8 +4,24 @@ var loader = require("@loader");
 var register = loader.has("asset-register") ?
   loader.get("asset-register")["default"] : function(){};
 
-function getExistingAsset(load){
-	var s = typeof jQuery !== "undefined" ? jQuery : document.querySelectorAll.bind(document);
+function getExistingAsset(load, head){
+	var s = typeof jQuery !== "undefined" ? jQuery :
+		document.querySelectorAll ? document.querySelectorAll.bind(document) :
+		function(){
+			var i = 0, found;
+			while(i < head.childNodes.length) {
+				var cur = head.childNodes.item(i);
+				if(cur.getAttribute) {
+					var attr = cur.getAttribute("asset-id");
+					if(attr && attr === load.name) {
+						found = cur;
+						break;
+					}
+				}
+				i++;
+			}
+			return found;
+		}
 	var val = s("[asset-id='" + load.name + "']");
 	return val && val[0];
 }
@@ -52,7 +68,7 @@ if(isProduction) {
 			});
 		} else {
 			if(typeof document !== "undefined") {
-				link = getExistingAsset(load);
+				link = getExistingAsset(load, document.head);
 				if(!link) {
 					link = document.createElement('link');
 					link.rel = 'stylesheet';
@@ -98,7 +114,7 @@ if(isProduction) {
 					docEl.insertBefore(head, docEl.firstChild);
 				}
 
-				var style = getExistingAsset(load);
+				var style = getExistingAsset(load, head);
 				if(!style || liveReloadEnabled) {
 					style = document.createElement('style')
 
@@ -115,9 +131,9 @@ if(isProduction) {
 				}
 
 				if(liveReloadEnabled) {
-					var cssReload = loader.import("live-reload", { name: "$css" });
+					var cssReload = loader["import"]("live-reload", { name: "$css" });
 					Promise.resolve(cssReload).then(function(reload){
-						loader.import(load.name).then(function(){
+						loader["import"](load.name).then(function(){
 							var wasReloaded = false;
 							reload.once(load.name, function(){
 								wasReloaded = true;
