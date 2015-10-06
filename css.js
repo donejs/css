@@ -68,13 +68,14 @@ if(isProduction) {
 			});
 		} else {
 			if(typeof document !== "undefined") {
-				link = getExistingAsset(load, document.head);
+                var head = document.head || document.getElementsByTagName("head")[0];
+				link = getExistingAsset(load, head);
 				if(!link) {
 					link = document.createElement('link');
 					link.rel = 'stylesheet';
 					link.href = cssFile;
 
-					document.head.appendChild(link);
+					head.appendChild(link);
 				}
 			}
 		}
