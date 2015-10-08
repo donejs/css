@@ -5,24 +5,10 @@ var register = loader.has("asset-register") ?
   loader.get("asset-register")["default"] : function(){};
 
 function getExistingAsset(load, head){
-	var s = typeof jQuery !== "undefined" ? jQuery :
-		document.querySelectorAll ? document.querySelectorAll.bind(document) :
-		function(){
-			var i = 0, found;
-			while(i < head.childNodes.length) {
-				var cur = head.childNodes.item(i);
-				if(cur.getAttribute) {
-					var attr = cur.getAttribute("asset-id");
-					if(attr && attr === load.name) {
-						found = cur;
-						break;
-					}
-				}
-				i++;
-			}
-			return found;
-		}
-	var val = s("[asset-id='" + load.name + "']");
+    var selector = "[asset-id='" + load.name + "']";
+    var val = (typeof jQuery !== 'undefined') ?
+              jQuery(selector) :
+              document.querySelectorAll(selector);
 	return val && val[0];
 }
 
