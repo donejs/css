@@ -102,7 +102,7 @@ if(isProduction) {
 				}
 
 				var style = getExistingAsset(load, head);
-				if(!style || liveReloadEnabled) {
+				if(!style || style.__isDirty) {
 					style = document.createElement('style')
 
 					// make source load relative to the current page
@@ -131,6 +131,7 @@ if(isProduction) {
 							// we know we can remove it after the reload
 							// cycle is complete.
 							reload.dispose(load.name, function(){
+								style.__isDirty = true;
 								reload.once("!cycleComplete", function(){
 									if(!wasReloaded) {
 										head.removeChild(style);
