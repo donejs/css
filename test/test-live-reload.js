@@ -51,11 +51,31 @@ QUnit.module("live-reload with ssr", {
 });
 
 QUnit.test("reloading css that has been server side rendered works", function(){
-	F("style").exists("the initial style is on the page");
+	F("style").size(1, "the initial style is on the page");
 
 	F(function(){
 		var address = "test/live-ssr/basics.js";
 		var content = "require('./other.css!');";
+
+		liveReloadTest.put(address, content).then(null, function(){
+			QUnit.ok(false, "Changing the css was not successful");
+			QUnit.start();
+		});
+	});
+
+	F("#app").exists().height(20, "The height is now correct");
+});
+
+QUnit.test("Updating the exists styles works", function(){
+	F("style").size(1, "The initial style is on the page");
+
+	F(function(){
+		var address = "test/live-ssr/style.css";
+		var content = "body {\n" +
+			"background: red;\n" +
+			"}\n" +
+			"#app {\n" +
+			"height: 20px;\n}";
 
 		liveReloadTest.put(address, content).then(null, function(){
 			QUnit.ok(false, "Changing the css was not successful");
@@ -97,4 +117,3 @@ QUnit.test("the orphaned module's css is removed", function(){
 
 	F("#app").exists().height(10, "The height is now correct because other.css was removed from the page");
 });
-
