@@ -89,6 +89,7 @@ if(isProduction) {
 				return "url(" + steal.joinURIs(address, part) + ")";
 			});
 
+			var loadPromise = Promise.resolve();
 			if(load.source && typeof document !== "undefined") {
 				var doc = document.head ? document : document.getElementsByTagName ?
 					document : document.documentElement;
@@ -119,24 +120,11 @@ if(isProduction) {
 
 				if(liveReloadEnabled) {
 					var cssReload = loader["import"]("live-reload", { name: "$css" });
-					Promise.resolve(cssReload).then(function(reload){
-						loader["import"](load.name).then(function(){
-							var wasReloaded = false;
-							reload.once(load.name, function(){
-								wasReloaded = true;
+					loadPromise = Promise.resolve(cssReload).then(function(reload){
+						reload.once("!dispose/" + load.name, function(){
+							style.__isDirty = true;
+							reload.once("!cycleComplete", function(){
 								head.removeChild(style);
-							});
-							// We need this code for orphaned modules. We set
-							// a flag to see if the css was reloaded, if not
-							// we know we can remove it after the reload
-							// cycle is complete.
-							reload.dispose(load.name, function(){
-								style.__isDirty = true;
-								reload.once("!cycleComplete", function(){
-									if(!wasReloaded) {
-										head.removeChild(style);
-									}
-								});
 							});
 						});
 					});
@@ -148,7 +136,9 @@ if(isProduction) {
 				});
 			}
 
-			return System.newModule({source: source});
+			return loadPromise.then(function(){
+				return System.newModule({source: source});
+			});
 		};
 		load.metadata.format = "css";
 	};
