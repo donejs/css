@@ -74,7 +74,7 @@ if(isProduction) {
 
 		load.metadata.deps = [];
 		load.metadata.execute = function(){
-			var liveReloadEnabled = loader.has("live-reload");
+			var liveReloadEnabled = loader.liveReloadInstalled || loader.has("live-reload");
 			var source = load.source+"/*# sourceURL="+load.address+" */";
 			var address = load.address;
 
