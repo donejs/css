@@ -22,3 +22,14 @@ QUnit.module("renderingLoader", {
 QUnit.test("is used when rewriting url()s", function(){
 	F("style").exists().text(/example\.com\/app/, "The renderingLoader's base url is http://example.com/app and this was used to rewrite font urls() correctly");
 });
+
+QUnit.module("Running in a fake Node environment", {
+	setup: function(){
+		F.open("//basics/prod-node.html");
+	}
+});
+
+QUnit.test("The renderingURL is adjusted for Unix/Windows path separator difference", function(){
+	F("link").size(1, "There is one link tag");
+	F("#app").height(20, "The css adjusted the #app div correctly");
+});
