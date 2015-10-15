@@ -17,7 +17,7 @@ var isNode = typeof process === "object" &&
 
 var isNW = (function(){
 	try {
-		return loader._nodeRequire("nw.gui") !== "undefined";
+		return typeof loader._nodeRequire("nw.gui") !== "undefined";
 	} catch(e) {
 		return false;
 	}
@@ -33,7 +33,8 @@ if(isProduction) {
 		var link;
 		if(isNode && !isNW) {
 			var path = loader._nodeRequire("path");
-			cssFile = path.relative(loader.baseURL, cssFile);
+			cssFile = path.relative(loader.baseURL, cssFile)
+				.replace(/\\/g, "/");
 
 			var href = "/" + cssFile;
 
