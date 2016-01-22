@@ -270,7 +270,7 @@ define('npm-extension', function (require, exports, module) {
     exports.includeInBuild = true;
     exports.addExtension = function (System) {
         var oldNormalize = System.normalize;
-        System.normalize = function (name, parentName, parentAddress) {
+        System.normalize = function (name, parentName, parentAddress, pluginNormalize) {
             if (parentName && utils.path.isRelative(name) && !utils.moduleName.isNpm(parentName)) {
                 return oldNormalize.call(this, name, parentName, parentAddress);
             }
@@ -294,7 +294,7 @@ define('npm-extension', function (require, exports, module) {
                 parsedModuleName.version = refPkg.version;
                 parsedModuleName.packageName = refPkg.name;
                 parsedModuleName.modulePath = utils.pkg.main(refPkg);
-                return oldNormalize.call(this, utils.moduleName.create(parsedModuleName), parentName, parentAddress);
+                return oldNormalize.call(this, utils.moduleName.create(parsedModuleName), parentName, parentAddress, pluginNormalize);
             }
             if (depPkg) {
                 parsedModuleName.version = depPkg.version;
@@ -305,16 +305,16 @@ define('npm-extension', function (require, exports, module) {
                 if (refPkg.system && refPkg.system.map && typeof refPkg.system.map[moduleName] === 'string') {
                     moduleName = refPkg.system.map[moduleName];
                 }
-                return oldNormalize.call(this, moduleName, parentName, parentAddress);
+                return oldNormalize.call(this, moduleName, parentName, parentAddress, pluginNormalize);
             } else {
                 if (depPkg === this.npmPaths.__default) {
                     var localName = parsedModuleName.modulePath ? parsedModuleName.modulePath + (parsedModuleName.plugin ? parsedModuleName.plugin : '') : utils.pkg.main(depPkg);
-                    return oldNormalize.call(this, localName, parentName, parentAddress);
+                    return oldNormalize.call(this, localName, parentName, parentAddress, pluginNormalize);
                 }
                 if (refPkg.browser && refPkg.browser[name]) {
-                    return oldNormalize.call(this, refPkg.browser[name], parentName, parentAddress);
+                    return oldNormalize.call(this, refPkg.browser[name], parentName, parentAddress, pluginNormalize);
                 }
-                return oldNormalize.call(this, name, parentName, parentAddress);
+                return oldNormalize.call(this, name, parentName, parentAddress, pluginNormalize);
             }
         };
         var oldLocate = System.locate;
