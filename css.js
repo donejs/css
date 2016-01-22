@@ -12,6 +12,11 @@ function getExistingAsset(load, head){
 	return val && val[0];
 }
 
+function addSlash(url) {
+	var hasSlash = url[url.length - 1] === "/";
+	return url + (hasSlash ? "" : "/");
+}
+
 var isNode = typeof process === "object" &&
 	{}.toString.call(process) === "[object process]";
 
@@ -42,7 +47,7 @@ if(isProduction) {
 			if(loader.renderingLoader) {
 				var baseURL = loader.renderingLoader.baseURL;
 				if(baseURL.indexOf("http") === 0) {
-					href = baseURL + cssFile.replace("dist/", "");
+					href = addSlash(baseURL) + cssFile.replace("dist/", "");
 				}
 			}
 
@@ -83,7 +88,8 @@ if(isProduction) {
 			// address when rewriting url()s.
 			if(loader.renderingLoader) {
 				var href = load.address.substr(loader.baseURL.length);
-				address = steal.joinURIs(loader.renderingLoader.baseURL, href);
+				var baseURL = addSlash(loader.renderingLoader.baseURL);
+				address = steal.joinURIs(baseURL, href);
 			}
 
 			source = source.replace(/url\(['"]?([^'"\)]*)['"]?\)/g, function(whole, part) {
