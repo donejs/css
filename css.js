@@ -2,13 +2,21 @@ var loader = require("@loader");
 
 // Register for server-side rendering.
 var register = loader.has("asset-register") ?
-  loader.get("asset-register")["default"] : function(){};
+	loader.get("asset-register")["default"] : function(){};
+
+var globalDoc = (function () {
+	if ( typeof canSsr !== "undefined" && canSsr.globalDocument ) {
+		return canSsr.globalDocument;
+	}
+	
+	return typeof document === "undefined" ? undefined : document;
+})();
 
 function getExistingAsset(load, head){
-    var selector = "[asset-id='" + load.name + "']";
-    var val = (typeof jQuery !== 'undefined') ?
-              jQuery(selector) :
-              document.querySelectorAll(selector);
+	var selector = "[asset-id='" + load.name + "']";
+	var val = (typeof jQuery !== 'undefined') ?
+						jQuery(selector) :
+						globalDoc.querySelectorAll(selector);
 	return val && val[0];
 }
 
@@ -51,7 +59,7 @@ if(isProduction) {
 				}
 			}
 
-			link = document.createElement('link');
+			link = globalDoc.createElement('link');
 			link.setAttribute("rel", "stylesheet");
 			link.setAttribute("href", href);
 
@@ -59,11 +67,11 @@ if(isProduction) {
 				return link.cloneNode(true);
 			});
 		} else {
-			if(typeof document !== "undefined") {
-                var head = document.head || document.getElementsByTagName("head")[0];
+			if(typeof globalDoc !== "undefined") {
+								var head = globalDoc.head || globalDoc.getElementsByTagName("head")[0];
 				link = getExistingAsset(load, head);
 				if(!link) {
-					link = document.createElement('link');
+					link = globalDoc.createElement('link');
 					link.rel = 'stylesheet';
 					link.href = cssFile;
 
@@ -97,21 +105,21 @@ if(isProduction) {
 			});
 
 			var loadPromise = Promise.resolve();
-			if(load.source && typeof document !== "undefined") {
-				var doc = document.head ? document : document.getElementsByTagName ?
-					document : document.documentElement;
+			if(load.source && typeof globalDoc !== "undefined") {
+				var doc = globalDoc.head ? globalDoc : globalDoc.getElementsByTagName ?
+					globalDoc : globalDoc.globalDocElement;
 
 				var head = doc.head || doc.getElementsByTagName('head')[0];
 
 				if(!head) {
-					var docEl = doc.documentElement || doc;
-					head = document.createElement("head");
+					var docEl = doc.globalDocElement || doc;
+					head = globalDoc.createElement("head");
 					docEl.insertBefore(head, docEl.firstChild);
 				}
 
 				var style = getExistingAsset(load, head);
 				if(!style || style.__isDirty) {
-					style = document.createElement('style')
+					style = globalDoc.createElement('style')
 
 					// make source load relative to the current page
 
@@ -120,7 +128,7 @@ if(isProduction) {
 					if (style.styleSheet){
 						style.styleSheet.cssText = source;
 					} else {
-						style.appendChild(document.createTextNode(source));
+						style.appendChild(globalDoc.createTextNode(source));
 					}
 					head.appendChild(style);
 				}

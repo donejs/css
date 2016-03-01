@@ -33,3 +33,40 @@ QUnit.test("The renderingURL is adjusted for Unix/Windows path separator differe
 	F("link").size(1, "There is one link tag");
 	F("#app").height(20, "The css adjusted the #app div correctly");
 });
+
+QUnit.module("ssr", {
+	setup: function(){
+		F.open("//ssr/index.html");
+	}
+});
+
+QUnit.test("ssr works", function(){
+	var contextDoc = function ( iframeEl ) {
+		var iframeDoc = ( iframeEl.contentWindow || iframeEl.contentDocument );
+		if ( iframeDoc.document ) {
+		  iframeDoc = iframeDoc.document;
+		}
+		return iframeDoc;
+	};
+	F.repeat({
+		method: function () {
+			var frame = document.getElementById( "funcunit_app" );
+			var doc = contextDoc( frame );
+			if ( !doc ) return false;
+
+			frame = doc.getElementById( "testframe" );
+			if ( !frame ) return false;
+
+			doc = contextDoc( frame );
+			if ( !doc ) return false;
+
+			var style = doc.getElementsByTagName( "style" );
+
+			return style.length ? true : false;
+		},
+		success: function () {
+			QUnit.ok( true, "styles applied correctly" );
+		}
+	});
+});
+
