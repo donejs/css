@@ -8,7 +8,11 @@ var globalDoc = (function () {
 	if ( typeof canSsr !== "undefined" && canSsr.globalDocument ) {
 		return canSsr.globalDocument;
 	}
-	
+
+	if(typeof doneSsr !== "undefined" && doneSsr.globalDocument) {
+		return doneSsr.globalDocument;
+	}
+
 	return typeof document === "undefined" ? undefined : document;
 })();
 
