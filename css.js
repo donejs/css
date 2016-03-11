@@ -14,13 +14,13 @@ var globalDoc = (function () {
 	}
 
 	return typeof document === "undefined" ? undefined : document;
-})();
+});
 
 function getExistingAsset(load, head){
 	var selector = "[asset-id='" + load.name + "']";
 	var val = (typeof jQuery !== 'undefined') ?
 						jQuery(selector) :
-						globalDoc.querySelectorAll(selector);
+						globalDoc().querySelectorAll(selector);
 	return val && val[0];
 }
 
@@ -63,19 +63,19 @@ if(isProduction) {
 				}
 			}
 
-			link = globalDoc.createElement('link');
-			link.setAttribute("rel", "stylesheet");
-			link.setAttribute("href", href);
-
 			register(load.name, "css", function(){
-				return link.cloneNode(true);
+				var link = globalDoc().createElement('link');
+				link.setAttribute("rel", "stylesheet");
+				link.setAttribute("href", href);
+				return link;
 			});
 		} else {
-			if(typeof globalDoc !== "undefined") {
-								var head = globalDoc.head || globalDoc.getElementsByTagName("head")[0];
+			var doc = globalDoc();
+			if(typeof doc !== "undefined") {
+				var head = doc.head || doc.getElementsByTagName("head")[0];
 				link = getExistingAsset(load, head);
 				if(!link) {
-					link = globalDoc.createElement('link');
+					link = doc.createElement('link');
 					link.rel = 'stylesheet';
 					link.href = cssFile;
 
@@ -109,21 +109,22 @@ if(isProduction) {
 			});
 
 			var loadPromise = Promise.resolve();
-			if(load.source && typeof globalDoc !== "undefined") {
-				var doc = globalDoc.head ? globalDoc : globalDoc.getElementsByTagName ?
-					globalDoc : globalDoc.globalDocElement;
+			if(load.source && typeof globalDoc() !== "undefined") {
+				var gDoc = globalDoc();
+				var doc = gDoc.head ? gDoc : gDoc.getElementsByTagName ?
+					gDoc : gDoc.globalDocElement;
 
 				var head = doc.head || doc.getElementsByTagName('head')[0];
 
 				if(!head) {
 					var docEl = doc.globalDocElement || doc;
-					head = globalDoc.createElement("head");
+					head = gDoc.createElement("head");
 					docEl.insertBefore(head, docEl.firstChild);
 				}
 
 				var style = getExistingAsset(load, head);
 				if(!style || style.__isDirty) {
-					style = globalDoc.createElement('style')
+					style = gDoc.createElement('style')
 
 					// make source load relative to the current page
 
@@ -132,7 +133,7 @@ if(isProduction) {
 					if (style.styleSheet){
 						style.styleSheet.cssText = source;
 					} else {
-						style.appendChild(globalDoc.createTextNode(source));
+						style.appendChild(gDoc.createTextNode(source));
 					}
 					head.appendChild(style);
 				}
