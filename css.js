@@ -164,6 +164,6 @@ if(isProduction) {
 	};
 
 }
-
+exports.locateScheme = true;
 exports.buildType = "css";
 exports.includeInBuild = true;
