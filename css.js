@@ -108,6 +108,13 @@ if(isProduction) {
 				return "url(" + steal.joinURIs(address, part) + ")";
 			});
 
+			// Replace @import's that don't start with a "u" or "U" and do start
+			// with a single or double quote with a path wrapped in "url()"
+			// relative to the page
+			source = source.replace(/@import [^uU]['"]?([^'"\)]*)['"]?/g, function(whole, part) {
+				return "@import url(" + steal.joinURIs(address, part) + ")";
+			});
+
 			var loadPromise = Promise.resolve();
 			if(load.source && typeof globalDoc() !== "undefined") {
 				var gDoc = globalDoc();

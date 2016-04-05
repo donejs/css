@@ -23,6 +23,32 @@ QUnit.test("is used when rewriting url()s", function(){
 	F("style").exists().text(/example\.com\/app/, "The renderingLoader's base url is http://example.com/app and this was used to rewrite font urls() correctly");
 });
 
+QUnit.module("paths", {
+	setup: function(){
+		F.open("//paths/index.html");
+	}
+});
+
+QUnit.test("url()", function(){
+	F("body")
+		.exists()
+		.css('backgroundImage', function (value) {
+			return value.indexOf('/test/paths/assets/images/hero-ribbons.png') > -1;
+		}, 'The path is relative to the page');
+});
+
+QUnit.test("@import 'locate://'", function(){
+	F(".btn.btn-danger")
+		.exists()
+		.css('display', 'inline-block', 'Styles applied');
+});
+
+QUnit.test("@import url('locate://')", function(){
+	F(".btn.btn-danger")
+		.exists()
+		.css('backgroundColor', 'rgb(255, 0, 0)', 'Styles applied');
+});
+
 QUnit.module("Running in a fake Node environment", {
 	setup: function(){
 		F.open("//basics/prod-node.html");
