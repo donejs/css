@@ -90,7 +90,11 @@ if(isProduction) {
 	exports.instantiate = function(load) {
 		var loader = this;
 
-		load.metadata.deps = [];
+		// Specify the css dependencies
+		var meta = loader.meta[load.name];
+		var deps = (meta && meta.deps) || [];
+
+		load.metadata.deps = deps;
 		load.metadata.execute = function(){
 			var liveReloadEnabled = loader.liveReloadInstalled || loader.has("live-reload");
 			var source = load.source+"/*# sourceURL="+load.address+" */";

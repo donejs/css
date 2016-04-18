@@ -4,9 +4,10 @@
   "description": "A CSS plugin, for css",
   "main": "css.js",
   "scripts": {
-	"test": "npm run test:browser && npm run test:live-reload",
-    "test:browser": "testee test/test.html --browsers firefox --reporter Spec",
-	"test:live-reload": "live-reload-test & testee test/test-live-reload.html --browsers firefox --reporter Spec"
+    "test": "npm run test:unit && npm run test:integration && npm run test:live-reload",
+    "test:unit": "testee test/test.html --browsers firefox --reporter Spec",
+	"test:integration": "testee test/test-integration.html --browsers firefox --reporter Spec",
+    "test:live-reload": "live-reload-test & testee test/test-live-reload.html --browsers firefox --reporter Spec"
   },
   "repository": {
     "type": "git",
@@ -33,9 +34,10 @@
   },
   "devDependencies": {
     "funcunit": "^3.0.0",
+    "live-reload-testing": "^1.0.0",
     "steal": "^0.15.0",
     "steal-qunit": "0.0.4",
-    "testee": "^0.2.0",
-	"live-reload-testing": "^1.0.0"
+    "steal-test-helpers": "^0.1.0",
+    "testee": "^0.2.0"
   }
 }
