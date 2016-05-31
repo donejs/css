@@ -4,24 +4,31 @@ var loader = require("@loader");
 var register = loader.has("asset-register") ?
 	loader.get("asset-register")["default"] : function(){};
 
-var globalDoc = (function () {
-	if ( typeof canSsr !== "undefined" && canSsr.globalDocument ) {
-		return canSsr.globalDocument;
-	}
-
+function globalDoc() {
 	if(typeof doneSsr !== "undefined" && doneSsr.globalDocument) {
 		return doneSsr.globalDocument;
 	}
 
 	return typeof document === "undefined" ? undefined : document;
-});
+}
 
 function getExistingAsset(load, head){
-	var selector = "[asset-id='" + load.name + "']";
-	var val = (typeof jQuery !== 'undefined') ?
-						jQuery(selector) :
-						globalDoc().querySelectorAll(selector);
-	return val && val[0];
+	var doc = globalDoc();
+
+	if(doc.querySelectorAll) {
+		var selector = "[asset-id='" + load.name + "']";
+		var val = doc.querySelectorAll(selector);
+		return val && val[0];
+	} else {
+		var els = doc.getElementsByTagName("*"), el;
+
+		for(var i = 0, len = els.length; i < len; i++) {
+			el = els[i];
+			if(el.getAttribute("asset-id") === load.name) {
+				return el;
+			}
+		}
+	}
 }
 
 function addSlash(url) {

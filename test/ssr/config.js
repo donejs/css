@@ -6,6 +6,6 @@ if ( iframeDoc.document ) {
   iframeDoc = iframeDoc.document;
 }
 
-canSsr = {
+doneSsr = {
   globalDocument: iframeDoc
 };
