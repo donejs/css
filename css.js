@@ -56,11 +56,16 @@ if(isProduction) {
 			var href = "/" + cssFile;
 
 			// If server side rendering and a baseURL is set, use it.
-			if(loader.renderingLoader) {
-				var baseURL = loader.renderingLoader.baseURL;
-				if(baseURL.indexOf("http") === 0) {
-					href = addSlash(baseURL) + cssFile.replace("dist/", "");
-				}
+			var baseURL;
+			if(loader.renderingBaseURL) {
+				baseURL = loader.renderingBaseURL;
+			} else if(loader.renderingLoader &&
+					 loader.renderingLoader.baseURL.indexOf("http") === 0) {
+				baseURL = loader.renderingLoader.baseURL;
+			}
+
+			if(baseURL) {
+				href = addSlash(baseURL) + cssFile.replace("dist/", "");
 			}
 
 			register(load.name, "css", function(){
@@ -98,9 +103,11 @@ if(isProduction) {
 
 			// If on the server use the renderingLoader to use the correct
 			// address when rewriting url()s.
-			if(loader.renderingLoader) {
+			if(loader.renderingLoader || loader.renderingBaseURL) {
 				var href = load.address.substr(loader.baseURL.length);
-				var baseURL = addSlash(loader.renderingLoader.baseURL);
+				var baseURL = addSlash(
+					loader.renderingBaseURL || loader.renderingLoader.baseURL
+				);
 				address = steal.joinURIs(baseURL, href);
 			}
 

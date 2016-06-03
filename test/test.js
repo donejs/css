@@ -23,6 +23,16 @@ QUnit.test("is used when rewriting url()s", function(){
 	F("style").exists().text(/example\.com\/app/, "The renderingLoader's base url is http://example.com/app and this was used to rewrite font urls() correctly");
 });
 
+QUnit.module("renderingLoader from root like /app", {
+	setup: function(){
+		F.open("//rendering-loader/index-two.html");
+	}
+});
+
+QUnit.test("Works", function(){
+	F("style").exists().text(/\/app/, "The renderingLoader's base url is http://example.com/app and this was used to rewrite font urls() correctly");
+});
+
 QUnit.module("paths", {
 	setup: function(){
 		F.open("//paths/index.html");
