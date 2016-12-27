@@ -1,7 +1,8 @@
 /*[system-bundles-config]*/
-System.bundles = {"bundles/test/basics/basics.css!":["test/basics/style.css!$css"]};
+System.bundles = {"bundles/test/basics/basics.css!":["test/basics/style.css!css"]};
 System.config({
 	paths: {
+		"steal-css": "node_modules/steal-css/css.js",
 		"$css": "css.js"
 	}
 });

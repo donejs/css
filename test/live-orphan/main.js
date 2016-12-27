@@ -1,2 +1,2 @@
-require('./style.css!');
-require('./other.css!');
+require('./style.css!done-css');
+require('./other.css!done-css');

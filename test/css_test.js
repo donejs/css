@@ -1,12 +1,20 @@
 var QUnit = require("steal-qunit");
-var helpers = require("steal-test-helpers")(System);
+var helpers = require("steal-test-helpers")(steal.loader);
 var pkg = require("../package.json");
+var cssPkg = require("../node_modules/steal-css/package.json");
+require("done-css");
 
 function clone(){
 	var name = "done-css@" + pkg.version + "#css";
+	var source = steal.loader.getModuleLoad(name).source;
+
+	var sName = "steal-css@" + cssPkg.version + "#css";
+	var sSource = steal.loader.getModuleLoad(sName).source;
 
 	return helpers.clone()
-		.withModule("done-css", System.getModuleLoad(name).source);
+		.withModule("@steal", "module.exports = steal")
+		.withModule("done-css", source)
+		.withModule("steal-css", sSource);
 }
 
 QUnit.module("loading modules with deps", function(hooks){

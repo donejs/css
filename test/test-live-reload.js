@@ -24,7 +24,7 @@ QUnit.test("removing css works", function(){
 
 	F(function(){
 		var address = "test/live/basics.js";
-		var content = "require('./other.css!');";
+		var content = "require('./other.css!done-css');";
 
 		liveReloadTest.put(address, content).then(null, function(){
 			QUnit.ok(false, "Changing css was not successful");
@@ -56,7 +56,7 @@ QUnit.test("reloading css that has been server side rendered works", function(){
 
 	F(function(){
 		var address = "test/live-ssr/basics.js";
-		var content = "require('./other.css!');";
+		var content = "require('./other.css!done-css');";
 
 		liveReloadTest.put(address, content).then(null, function(){
 			QUnit.ok(false, "Changing the css was not successful");
@@ -108,7 +108,7 @@ QUnit.test("the orphaned module's css is removed", function(){
 
 	F(function(){
 		var address = "test/live-orphan/main.js";
-		var content = "require('./style.css!');";
+		var content = "require('./style.css!done-css');";
 
 		liveReloadTest.put(address, content).then(null, function(){
 			QUnit.ok(false, "Changing the css was not successful");
