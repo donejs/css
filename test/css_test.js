@@ -1,33 +1,10 @@
 var QUnit = require("steal-qunit");
-var helpers = require("steal-test-helpers")(steal.loader);
-var pkg = require("../package.json");
-var cssPkg = require("../node_modules/steal-css/package.json");
+var helpers = require("./test-helpers");
 require("done-css");
-
-function clone(){
-	var name = "done-css@" + pkg.version + "#css";
-	var source = steal.loader.getModuleLoad(name).source;
-
-	var sName = "steal-css@" + cssPkg.version + "#css";
-	var sSource = steal.loader.getModuleLoad(sName).source;
-
-	return helpers.clone()
-		.withModule("@steal", "module.exports = steal")
-		.withModule("done-css", source)
-		.withModule("steal-css", sSource);
-}
 
 QUnit.module("loading modules with deps", function(hooks){
 	hooks.afterEach(function(){
-		// clean up by removing each style until you get to the qunit one
-		removeUntilQUnit(document.head.lastChild);
-
-		function removeUntilQUnit(style) {
-			if(style.tagName === "STYLE" && !/QUnit/.test(style.innerHTML)) {
-				style.parentNode.removeChild(style);
-				removeUntilQUnit(document.head.lastChild);
-			}
-		}
+		helpers.removeAddedStyles();
 	});
 
 	QUnit.test("Works", function(assert){
@@ -35,7 +12,7 @@ QUnit.module("loading modules with deps", function(hooks){
 
 		var appCss = "body { }";
 
-		var loader = clone()
+		var loader = helpers.clone()
 			.rootPackage({
 				name: "app",
 				version: "1.0.0",

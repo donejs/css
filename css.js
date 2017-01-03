@@ -92,6 +92,10 @@ proto.updateURLs = function(){
 proto.shouldInjectStyle = function(){
 	var head = getHead();
 	var style = getExistingAsset(this.load);
+	if(style) {
+		this.style = style;
+	}
+
 	return !style || style.__isDirty;
 };
 
