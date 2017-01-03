@@ -1,120 +1,165 @@
 var QUnit = require("steal-qunit");
-var liveReloadTest = require("live-reload-testing");
-var F = require("funcunit");
+var helpers = require("./test-helpers");
 
-F.attach(QUnit);
-
-QUnit.module("live-reload", {
-	setup: function(assert){
-		var done = assert.async();
-		F.open("//live/index.html", function(){
-			done();
-		});
-	},
-	teardown: function(assert){
-		var done = assert.async();
-		liveReloadTest.reset().then(function(){
-			done();
-		});
+QUnit.module("Replacing an imported CSS", {
+	teardown: function(){
+		helpers.removeAddedStyles();
 	}
 });
 
-QUnit.test("removing css works", function(){
-	F("style").exists("the initial style was added to the page");
+QUnit.test("removing CSS module works", function(assert){
+	var done = assert.async();
 
-	F(function(){
-		var address = "test/live/basics.js";
-		var content = "require('./other.css!');";
+	var runner = helpers.clone()
+		.rootPackage({
+			name: "app",
+			version: "1.0.0",
+			main: "main.js",
+			system: {
+				configDependencies: [
+					"node_modules/steal/ext/live-reload"
+				]
+			}
+		})
+		.withModule("app@1.0.0#main", "module.exports = require('./app.css!done-css');")
+		.withModule("app@1.0.0#app.css!done-css", "body { color: blue; }")
+		.withModule("app@1.0.0#other.css!done-css", "body { color: red; }")
+		.allowFetch("node_modules/steal/ext/live-reload");
 
-		liveReloadTest.put(address, content).then(null, function(){
-			QUnit.ok(false, "Changing css was not successful");
-			QUnit.start();
-		});
-	});
+	var loader = runner.loader;
 
-   F("#app").exists().height(20, "The height is now correct");
+	loader["import"]("app")
+	.then(function(){
+		var liveReload = loader.get("node_modules/steal/ext/live-reload")["default"];
+		runner.withModule("app@1.0.0#main", "module.exports = require('./other.css!done-css');");
+
+		return liveReload("app@1.0.0#main");
+
+	})
+	.then(function(){
+		var ss = document.styleSheets;
+		assert.equal(ss.length, 2, "The app.css stylesheet was removed");
+	})
+	.then(done, done);
 });
 
-
-QUnit.module("live-reload with ssr", {
+QUnit.module("SSR", {
 	setup: function(assert){
 		var done = assert.async();
-		F.open("//live-ssr/index.html", function(){
-			done();
-		});
+
+		this.runner = helpers.clone()
+			.rootPackage({
+				name: "app",
+				version: "1.0.0",
+				main: "main.js",
+				system: {
+					configDependencies: [
+						"node_modules/steal/ext/live-reload"
+					]
+				}
+			})
+			.withModule("app@1.0.0#main", "module.exports = require('./app.css!done-css');")
+			.withModule("app@1.0.0#app.css!done-css", "body { color: blue; }")
+			.withModule("app@1.0.0#other.css!done-css", "body { color: red; }")
+			.allowFetch("node_modules/steal/ext/live-reload");
+
+		var head = document.head;
+		var style = document.createElement("style");
+		style.textContent = "body { color: blue; }";
+		style.setAttribute("asset-id", "app@1.0.0#app.css!done-css");
+		head.appendChild(style);
+
+		this.runner.loader["import"]("app").then(done, done);
 	},
-	teardown: function(assert){
-		var done = assert.async();
-		liveReloadTest.reset().then(function(){
-			done();
-		});
+
+	teardown: function(){
+		helpers.removeAddedStyles();
 	}
 });
 
-QUnit.test("reloading css that has been server side rendered works", function(){
-	F("style").size(1, "the initial style is on the page");
-
-	F(function(){
-		var address = "test/live-ssr/basics.js";
-		var content = "require('./other.css!');";
-
-		liveReloadTest.put(address, content).then(null, function(){
-			QUnit.ok(false, "Changing the css was not successful");
-			QUnit.start();
-		});
-	});
-
-	F("#app").exists().height(20, "The height is now correct");
+QUnit.test("No style is added because it already exists", function(assert){
+	var ss = document.styleSheets;
+	assert.equal(ss.length, 2, "One the pre-existing stylesheet is there");
 });
 
-QUnit.test("Updating the exists styles works", function(){
-	F("style").size(1, "The initial style is on the page");
+QUnit.test("Replacing the main module with a different style removes the old one", function(assert){
+	var done = assert.async();
+	var runner = this.runner, loader = runner.loader;
 
-	F(function(){
-		var address = "test/live-ssr/style.css";
-		var content = "body {\n" +
-			"background: red;\n" +
-			"}\n" +
-			"#app {\n" +
-			"height: 20px;\n}";
+	var liveReload = loader.get("node_modules/steal/ext/live-reload")["default"];
 
-		liveReloadTest.put(address, content).then(null, function(){
-			QUnit.ok(false, "Changing the css was not successful");
-			QUnit.start();
-		});
-	});
+	runner.withModule("app@1.0.0#main", "require('./other.css!done-css');");
 
-	F("#app").exists().height(20, "The height is now correct");
+	liveReload("app@1.0.0#main")
+	.then(function(){
+		var ss = document.styleSheets;
+		assert.equal(ss.length, 2, "other.css replaced app.css");
+	})
+	.then(done, done);
 });
 
-QUnit.module("live-reload removes orphaned modules", {
+QUnit.test("Replacing the existing CSS updates it", function(assert){
+	var done = assert.async();
+	var runner = this.runner, loader = runner.loader;
+
+	var liveReload = loader.get("node_modules/steal/ext/live-reload")["default"];
+
+	runner.withModule("app@1.0.0#app.css!done-css", "body { color: purple; }");
+
+	liveReload("app@1.0.0#app.css!done-css")
+	.then(function(){
+		var ss = document.styleSheets;
+		assert.equal(ss.length, 2, "still just 2 stylesheets");
+
+		var bodyStyles = window.getComputedStyle(document.body);
+		var color = bodyStyles.color;
+		assert.equal(color, "rgb(128, 0, 128)", "it is now purple");
+	})
+	.then(done, done);
+});
+
+QUnit.module("Orphaned modules", {
 	setup: function(assert){
 		var done = assert.async();
-		F.open("//live-orphan/index.html", function(){
-			done();
-		});
+
+		this.runner = helpers.clone()
+			.rootPackage({
+				name: "app",
+				version: "1.0.0",
+				main: "main.js",
+				system: {
+					configDependencies: [
+						"node_modules/steal/ext/live-reload"
+					]
+				}
+			})
+			.withModule("app@1.0.0#main", "require('./app.css!done-css');require('./other.css!done-css');")
+			.withModule("app@1.0.0#app.css!done-css", "body { color: blue; }")
+			.withModule("app@1.0.0#other.css!done-css", "body { color: red; }")
+			.allowFetch("node_modules/steal/ext/live-reload");
+
+		this.runner.loader["import"]("app").then(done, done);
 	},
-	teardown: function(assert){
-		var done = assert.async();
-		liveReloadTest.reset().then(function(){
-			done();
-		});
+
+	teardown: function(){
+		helpers.removeAddedStyles();
 	}
 });
 
-QUnit.test("the orphaned module's css is removed", function(){
-	F("style").exists("the initial style is on the page");
-	F("#app").exists().height(20, "The height is correct initially");
+QUnit.test("When a module is orphaned it gets removed", function(assert){
+	var done = assert.async();
+	var runner = this.runner, loader = runner.loader;
 
-	F(function(){
-		var address = "test/live-orphan/main.js";
-		var content = "require('./style.css!');";
+	var ss = document.styleSheets;
+	assert.equal(ss.length, 3, "there are initially 3 styles");
 
-		liveReloadTest.put(address, content).then(null, function(){
-			QUnit.ok(false, "Changing the css was not successful");
-			QUnit.start();
-		});
-	});
+	var liveReload = loader.get("node_modules/steal/ext/live-reload")["default"];
 
-	F("#app").exists().height(10, "The height is now correct because other.css was removed from the page");
+	runner.withModule("app@1.0.0#main", "require('./app.css!done-css');");
+
+	liveReload("app@1.0.0#main")
+	.then(function(){
+		assert.equal(ss.length, 2, "now there are only 2 styles");
+	})
+	.then(done, done);
 });

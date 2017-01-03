@@ -98,6 +98,8 @@ QUnit.test("ssr works", function(){
 
 			var style = doc.getElementsByTagName( "style" );
 
+			console.log('len', style.length);
+
 			return style.length ? true : false;
 		},
 		success: function () {

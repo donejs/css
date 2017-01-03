@@ -1,27 +1,133 @@
 var loader = require("@loader");
+var cssPlugin = require("steal-css");
 
-// Register for server-side rendering.
-var register = loader.has("asset-register") ?
-	loader.get("asset-register")["default"] : function(){};
+var StealCSSModule = cssPlugin.CSSModule;
 
-var globalDoc = (function () {
-	if ( typeof canSsr !== "undefined" && canSsr.globalDocument ) {
-		return canSsr.globalDocument;
+exports.locateScheme = cssPlugin.locateScheme;
+exports.buildType = cssPlugin.buildType;
+exports.includeInBuild = cssPlugin.includeInBuild;
+
+var getDocument = cssPlugin.getDocument;
+var getHead = cssPlugin.getHead;
+
+var DoneCSSModule = function(){
+	StealCSSModule.apply(this, arguments);
+};
+
+var proto = DoneCSSModule.prototype = Object.create(StealCSSModule.prototype);
+proto.constructor = DoneCSSModule;
+
+proto.getSSRRegister = function(){
+	// Register for server-side rendering.
+	var register = loader.has("asset-register") ?
+		loader.get("asset-register")["default"] : function(){};
+
+	return register;
+};
+
+proto.updateProductionHref = function(){
+	var cssFile = this.address;
+	var loader = this.loader;
+
+	// Get a relative path from the baseURL to the module's address
+	var path = loader._nodeRequire("path");
+	cssFile = path.relative(loader.baseURL, cssFile).replace(/\\/g, "/");
+
+	var href = "/" + cssFile;
+
+	// If server side rendering and a baseURL is set, use it.
+	var baseURL;
+	if(loader.renderingBaseURL) {
+		baseURL = loader.renderingBaseURL;
+	} else if(loader.renderingLoader &&
+		loader.renderingLoader.baseURL.indexOf("http") === 0) {
+		baseURL = loader.renderingLoader.baseURL;
 	}
 
-	if(typeof doneSsr !== "undefined" && doneSsr.globalDocument) {
-		return doneSsr.globalDocument;
+	if(baseURL) {
+		href = addSlash(baseURL) + cssFile.replace("dist/", "");
+	}
+	this.href = href;
+};
+
+proto.registerSSR = function(){
+	var css = this;
+
+	var cb;
+	if(loader.isEnv("production")) {
+		this.updateProductionHref();
+		cb = function(){
+			var link = getDocument().createElement("link");
+			link.setAttribute("rel", "stylesheet");
+			link.setAttribute("href", css.href);
+			return link;
+		};
+	} else {
+		cb = function(){
+			return css.style.cloneNode(true);
+		};
 	}
 
-	return typeof document === "undefined" ? undefined : document;
-});
+	this.getSSRRegister()(this.name, "css", cb);
+};
+
+proto.updateURLs = function(){
+	var loader = this.loader;
+	var address = this.address;
+
+	// If on the server use the renderingLoader to use the correct
+	// address when rewriting url()s.
+	if(loader.renderingLoader || loader.renderingBaseURL) {
+		var href = address.substr(loader.baseURL.length);
+		var baseURL = addSlash(
+			loader.renderingBaseURL || loader.renderingLoader.baseURL
+		);
+		address = steal.joinURIs(baseURL, href);
+	}
+	this.address = address;
+
+	return StealCSSModule.prototype.updateURLs.call(this);
+};
+
+proto.shouldInjectStyle = function(){
+	var head = getHead();
+	var style = getExistingAsset(this.load);
+	if(style) {
+		this.style = style;
+	}
+
+	return !style || style.__isDirty;
+};
+
+proto.injectStyle = function(){
+	if(this.shouldInjectStyle()) {
+		StealCSSModule.prototype.injectStyle.call(this);
+	}
+};
+
+proto.dependencies = function(){
+	// Specify the css dependencies
+	var meta = this.loader.meta[this.load.name];
+	return (meta && meta.deps) || [];
+};
 
 function getExistingAsset(load, head){
-	var selector = "[asset-id='" + load.name + "']";
-	var val = (typeof jQuery !== 'undefined') ?
-						jQuery(selector) :
-						globalDoc().querySelectorAll(selector);
-	return val && val[0];
+	var doc = getDocument();
+
+	if(doc.querySelectorAll) {
+		var selector = "[asset-id='" + load.name + "']";
+		var val = doc.querySelectorAll(selector);
+		return val && val[0];
+	} else {
+		var els = doc.getElementsByTagName("*"), el;
+
+		for(var i = 0, len = els.length; i < len; i++) {
+			el = els[i];
+			if(el.getAttribute("asset-id") === load.name) {
+				return el;
+			}
+		}
+	}
 }
 
 function addSlash(url) {
@@ -40,148 +146,35 @@ var isNW = (function(){
 	}
 })();
 
-var isProduction = (loader.isEnv && loader.isEnv("production")) || (loader.envMap && loader.envMap.production) || loader.env === "production";
-if(isProduction) {
+if(loader.isEnv("production")) {
 	exports.fetch = function(load) {
-		// return a thenable for fetching (as per specification)
-		// alternatively return new Promise(function(resolve, reject) { ... })
-		var cssFile = load.address;
+		var css = new DoneCSSModule(load, this);
 
-		var link;
 		if(isNode && !isNW) {
-			var path = loader._nodeRequire("path");
-			cssFile = path.relative(loader.baseURL, cssFile)
-				.replace(/\\/g, "/");
-
-			var href = "/" + cssFile;
-
-			// If server side rendering and a baseURL is set, use it.
-			var baseURL;
-			if(loader.renderingBaseURL) {
-				baseURL = loader.renderingBaseURL;
-			} else if(loader.renderingLoader &&
-					 loader.renderingLoader.baseURL.indexOf("http") === 0) {
-				baseURL = loader.renderingLoader.baseURL;
-			}
-
-			if(baseURL) {
-				href = addSlash(baseURL) + cssFile.replace("dist/", "");
-			}
-
-			register(load.name, "css", function(){
-				var link = globalDoc().createElement('link');
-				link.setAttribute("rel", "stylesheet");
-				link.setAttribute("href", href);
-				return link;
-			});
+			css.registerSSR();
+			return "";
 		} else {
-			var doc = globalDoc();
-			if(typeof doc !== "undefined") {
-				var head = doc.head || doc.getElementsByTagName("head")[0];
-				link = getExistingAsset(load, head);
-				if(!link) {
-					link = doc.createElement('link');
-					link.rel = 'stylesheet';
-					link.href = cssFile;
-
-					head.appendChild(link);
-				}
-			}
+			return css.injectLink();
 		}
-
-		return "";
 	};
 } else {
 	exports.instantiate = function(load) {
 		var loader = this;
 
-		// Specify the css dependencies
-		var meta = loader.meta[load.name];
-		var deps = (meta && meta.deps) || [];
+		var css = new DoneCSSModule(load, this);
+		load.source = css.updateURLs();
 
-		load.metadata.deps = deps;
+		load.metadata.deps = css.dependencies();
+		load.metadata.format = "css";
 		load.metadata.execute = function(){
-			var liveReloadEnabled = loader.liveReloadInstalled || loader.has("live-reload");
-			var source = load.source+"/*# sourceURL="+load.address+" */";
-			var address = load.address;
-
-			// If on the server use the renderingLoader to use the correct
-			// address when rewriting url()s.
-			if(loader.renderingLoader || loader.renderingBaseURL) {
-				var href = load.address.substr(loader.baseURL.length);
-				var baseURL = addSlash(
-					loader.renderingBaseURL || loader.renderingLoader.baseURL
-				);
-				address = steal.joinURIs(baseURL, href);
+			if(getDocument()) {
+				css.injectStyle();
+				css.setupLiveReload(loader, load.name);
 			}
 
-			source = source.replace(/url\(['"]?([^'"\)]*)['"]?\)/g, function(whole, part) {
-				return "url(" + steal.joinURIs(address, part) + ")";
-			});
-
-			// Replace @import's that don't start with a "u" or "U" and do start
-			// with a single or double quote with a path wrapped in "url()"
-			// relative to the page
-			source = source.replace(/@import [^uU]['"]?([^'"\)]*)['"]?/g, function(whole, part) {
-				return "@import url(" + steal.joinURIs(address, part) + ")";
-			});
-
-			var loadPromise = Promise.resolve();
-			if(load.source && typeof globalDoc() !== "undefined") {
-				var gDoc = globalDoc();
-				var doc = gDoc.head ? gDoc : gDoc.getElementsByTagName ?
-					gDoc : gDoc.globalDocElement;
-
-				var head = doc.head || doc.getElementsByTagName('head')[0];
-
-				if(!head) {
-					var docEl = doc.globalDocElement || doc;
-					head = gDoc.createElement("head");
-					docEl.insertBefore(head, docEl.firstChild);
-				}
-
-				var style = getExistingAsset(load, head);
-				if(!style || style.__isDirty) {
-					style = gDoc.createElement('style')
-
-					// make source load relative to the current page
-
-					style.type = 'text/css';
-
-					if (style.styleSheet){
-						style.styleSheet.cssText = source;
-					} else {
-						style.appendChild(gDoc.createTextNode(source));
-					}
-					head.appendChild(style);
-				}
-
-				if(liveReloadEnabled) {
-					var cssReload = loader["import"]("live-reload", { name: "$css" });
-					loadPromise = Promise.resolve(cssReload).then(function(reload){
-						reload.once("!dispose/" + load.name, function(){
-							style.__isDirty = true;
-							reload.once("!cycleComplete", function(){
-								head.removeChild(style);
-							});
-						});
-					});
-				}
-
-				// For server-side rendering, register this module.
-				register(load.name, "css", function(){
-					return style.cloneNode(true);
-				});
-			}
-
-			return loadPromise.then(function(){
-				return System.newModule({source: source});
+			return loader.newModule({
+				source: css.source
 			});
 		};
-		load.metadata.format = "css";
 	};
-
 }
-exports.locateScheme = true;
-exports.buildType = "css";
-exports.includeInBuild = true;
