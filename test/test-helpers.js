@@ -6,6 +6,7 @@ require("done-css");
 
 exports.clone = clone;
 exports.removeAddedStyles = removeAddedStyles;
+exports.fakeBeingInNode = fakeBeingInNode;
 
 function clone(){
 	var name = "done-css@" + pkg.version + "#css";
@@ -31,4 +32,21 @@ function removeAddedStyles() {
 		}
 	}
 
+}
+
+function fakeBeingInNode() {
+	process = {};
+	var ts = Object.prototype.toString;
+	Object.prototype.toString = function(){
+		if(this === process) {
+			return "[object process]";
+		}
+		return ts.call(this);
+	};
+
+	return function(){
+		var global = steal.loader.global;
+		delete global.process;
+		Object.prototype.toString = ts;
+	};
 }

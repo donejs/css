@@ -68,7 +68,7 @@ proto.registerSSR = function(){
 		};
 	}
 
-	this.getSSRRegister()(this.name, "css", cb);
+	this.getSSRRegister()(this.load.name, "css", cb);
 };
 
 proto.updateURLs = function(){
@@ -170,6 +170,9 @@ if(loader.isEnv("production")) {
 			if(getDocument()) {
 				css.injectStyle();
 				css.setupLiveReload(loader, load.name);
+			}
+			if(isNode && !isNW) {
+				css.registerSSR();
 			}
 
 			return loader.newModule({

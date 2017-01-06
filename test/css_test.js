@@ -46,3 +46,5 @@ QUnit.module("loading modules with deps", function(hooks){
 
 	});
 });
+
+require("./test-ssr");
