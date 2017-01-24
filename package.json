@@ -4,6 +4,10 @@
   "description": "A CSS plugin, for css",
   "main": "css.js",
   "scripts": {
+    "publish": "git push origin && git push origin --tags",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish",
     "test": "npm run test:unit && npm run test:integration && npm run test:live-reload",
     "test:unit": "testee test/test.html --browsers firefox --reporter Spec",
     "test:integration": "testee test/test-integration.html --browsers firefox --reporter Spec",
