@@ -13,9 +13,9 @@ QUnit.test("basics works", function(){
 	F("style").exists("the style was added to the page");
 });
 
-QUnit.module("renderingLoader", {
+QUnit.module("renderingBaseURL", {
 	setup: function(){
-		F.open("//rendering-loader/index.html");
+		F.open("//rendering-base-url/index.html");
 	}
 });
 
@@ -23,9 +23,9 @@ QUnit.test("is used when rewriting url()s", function(){
 	F("style").exists().text(/example\.com\/app/, "The renderingLoader's base url is http://example.com/app and this was used to rewrite font urls() correctly");
 });
 
-QUnit.module("renderingLoader from root like /app", {
+QUnit.module("renderingBaseURL from root like /app", {
 	setup: function(){
-		F.open("//rendering-loader/index-two.html");
+		F.open("//rendering-base-url/index-two.html");
 	}
 });
 

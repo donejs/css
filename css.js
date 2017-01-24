@@ -39,14 +39,16 @@ proto.updateProductionHref = function(){
 	var baseURL;
 	if(loader.renderingBaseURL) {
 		baseURL = loader.renderingBaseURL;
-	} else if(loader.renderingLoader &&
-		loader.renderingLoader.baseURL.indexOf("http") === 0) {
-		baseURL = loader.renderingLoader.baseURL;
+
+		// if loading from a CDN (or other http:// URL),
+		// remove the dist/ from CSS href
+		if (baseURL.indexOf('http:') === 0) {
+			href = addSlash(baseURL) + cssFile.replace("dist/", "");
+		} else {
+			href = addSlash(baseURL) + cssFile;
+		}
 	}
 
-	if(baseURL) {
-		href = addSlash(baseURL) + cssFile.replace("dist/", "");
-	}
 	this.href = href;
 };
 
