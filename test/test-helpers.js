@@ -7,6 +7,7 @@ require("done-css");
 exports.clone = clone;
 exports.removeAddedStyles = removeAddedStyles;
 exports.fakeBeingInNode = fakeBeingInNode;
+exports.fakeBeingInElectron = fakeBeingInElectron;
 
 function clone(){
 	var name = "done-css@" + pkg.version + "#css";
@@ -26,16 +27,18 @@ function removeAddedStyles() {
 	removeUntilQUnit(document.head.lastChild);
 
 	function removeUntilQUnit(style) {
-		if(style.tagName === "STYLE" && !/QUnit/.test(style.innerHTML)) {
+		var isAddedStyle = style.tagName === "STYLE" && !/QUnit/.test(style.innerHTML);
+		var isAddedLink = style.tagName === "LINK";
+
+		if(isAddedStyle || isAddedLink) {
 			style.parentNode.removeChild(style);
 			removeUntilQUnit(document.head.lastChild);
 		}
 	}
-
 }
 
 function fakeBeingInNode() {
-	process = {};
+	process = {versions:{}};
 	var ts = Object.prototype.toString;
 	Object.prototype.toString = function(){
 		if(this === process) {
@@ -48,5 +51,16 @@ function fakeBeingInNode() {
 		var global = steal.loader.global;
 		delete global.process;
 		Object.prototype.toString = ts;
+	};
+}
+
+function fakeBeingInElectron() {
+	var reset = fakeBeingInNode();
+	process = {
+		versions: {electron: "1.0.0"}
+	};
+
+	return function(){
+		reset();
 	};
 }

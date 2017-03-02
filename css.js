@@ -147,12 +147,13 @@ var isNW = (function(){
 		return false;
 	}
 })();
+var isElectron = isNode && !!process.versions.electron;
 
 if(loader.isEnv("production")) {
 	exports.fetch = function(load) {
 		var css = new DoneCSSModule(load, this);
 
-		if(isNode && !isNW) {
+		if(isNode && !isNW && !isElectron) {
 			css.registerSSR();
 			return "";
 		} else {
@@ -173,7 +174,7 @@ if(loader.isEnv("production")) {
 				css.injectStyle();
 				css.setupLiveReload(loader, load.name);
 			}
-			if(isNode && !isNW) {
+			if(isNode && !isNW && !isElectron) {
 				css.registerSSR();
 			}
 
