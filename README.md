@@ -1,5 +1,7 @@
 # done-css
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/donejs/css.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/donejs/css.svg?branch=worker)](https://travis-ci.org/donejs/css)
 [![npm version](https://badge.fury.io/js/done-css.svg)](http://badge.fury.io/js/done-css)
 
