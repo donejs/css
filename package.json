@@ -34,7 +34,10 @@
     },
     "map": {
       "$css": "done-css"
-    }
+    },
+    "plugins": [
+      "steal-css"
+    ]
   },
   "devDependencies": {
     "funcunit": "^3.0.0",
