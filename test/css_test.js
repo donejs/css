@@ -1,6 +1,14 @@
 var QUnit = require("steal-qunit");
 var helpers = require("./test-helpers");
-require("done-css");
+var doneCss = require("done-css");
+
+QUnit.module("done-css exports");
+
+// this means done-css will be replaced by steal-css/slim
+// during the optimized build
+QUnit.test("it sets steal-css/slim as pluginBuilder", function(assert) {
+	assert.equal(doneCss.pluginBuilder, "steal-css/slim");
+});
 
 QUnit.module("loading modules with deps", function(hooks){
 	hooks.afterEach(function(){
