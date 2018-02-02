@@ -6,6 +6,7 @@ var StealCSSModule = cssPlugin.CSSModule;
 exports.locateScheme = cssPlugin.locateScheme;
 exports.buildType = cssPlugin.buildType;
 exports.includeInBuild = cssPlugin.includeInBuild;
+exports.pluginBuilder = "steal-css/slim";
 
 var getDocument = cssPlugin.getDocument;
 var getHead = cssPlugin.getHead;
