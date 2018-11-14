@@ -5,6 +5,8 @@
 
 A CSS plugin for DoneJS projects.
 
+This is the normal Steal CSS plugin with a few DoneJS specific features like live-reload and server-side rendering included.
+
 ## Install
 
 To use this plugin in a DoneJS project just install it:
