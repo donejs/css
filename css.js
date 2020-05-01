@@ -50,6 +50,14 @@ proto.updateProductionHref = function(){
 		}
 	}
 
+	if(loader.renderingCacheVersion) {
+		var cacheKey = loader.cacheKey || "version";
+		var cacheKeyVersion  = cacheKey + "=" + loader.renderingCacheVersion;
+		if(href.indexOf(cacheKeyVersion) === -1) {
+			href = href + (href.indexOf("?") === -1 ? "?" : "&") + cacheKeyVersion;
+		}
+	}
+
 	this.href = href;
 };
 
@@ -148,6 +156,7 @@ var isNW = (function(){
 		return false;
 	}
 })();
+
 var isElectron = isNode && !!process.versions.electron;
 
 if(loader.isEnv("production")) {

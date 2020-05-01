@@ -17,7 +17,6 @@ function clone(){
 	var sSource = steal.loader.getModuleLoad(sName).source;
 
 	return helpers.clone()
-		//.withModule("@steal", "module.exports = steal")
 		.withModule("done-css", source)
 		.withModule("steal-css", sSource);
 }
