@@ -55,5 +55,63 @@ QUnit.module("loading modules with deps", function(hooks){
 	});
 });
 
+QUnit.module("Using with the cache extension", function(hooks){
+	var removeNodeFake;
+	hooks.beforeEach(function(){
+		removeNodeFake = helpers.fakeBeingInNode();
+	});
+
+	hooks.afterEach(function(){
+		helpers.removeAddedStyles();
+		removeNodeFake();
+	});
+
+	QUnit.test("Sets the versio query string", function(assert){
+		var done = assert.async();
+		var cb;
+
+		var loader = helpers.clone()
+			.rootPackage({
+				name: "app",
+				version: "1.0.0",
+				main: "main.js",
+				steal: {
+					env: 'production',
+					renderingCacheVersion: 2
+				}
+			})
+			.allowFetch("app@1.0.0#app.css!done-css")
+			.loader;
+
+		loader._nodeRequire = function(name) {
+			if(name !== "path") throw new Error("Cannot require " + name);
+			return {
+				relative: function(base, rel) {
+					return steal.relativeURI(base, rel);
+				}
+			}
+		};
+
+		loader.set("asset-register", loader.newModule({
+			__useDefault: true,
+			"default": function(name, type, callback) {
+				cb = callback;
+			}
+		}));
+
+		loader["import"]("app/app.css!done-css")
+		.then(function(){
+			assert.equal(typeof cb, "function", "registered module");
+
+			var search = steal.parseURI(cb().href).search;
+			assert.ok(search.indexOf("?version=2") !== -1);
+		}, function(err){
+			console.log("err", err);
+			assert.ok(!err, err.message);
+		}).then(done, done);
+
+	});
+});
+
 require("./test-ssr");
 require("./test-electron");

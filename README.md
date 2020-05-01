@@ -15,6 +15,22 @@ To use this plugin in a DoneJS project just install it:
 npm install done-css --save
 ```
 
+## Features
+
+### renderingCacheVersion
+
+When server-side rendering with [done-ssr](https://github.com/donejs/done-ssr) and using the [cache busting](https://stealjs.com/docs/config.cacheVersion.html) extension you need to specify the `renderingCacheVersion` property in your config. You might do so like this:
+
+```js
+const ssr = require("done-ssr");
+
+const render = ssr({
+	renderingCacheVersion: 99
+});
+```
+
+Doing this will result in the cache version number appearing in the server-rendered `<link>` elements.
+
 ## Contributing
 
 To setup your dev environment:
